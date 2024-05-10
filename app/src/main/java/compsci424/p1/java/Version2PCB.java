@@ -13,11 +13,13 @@ public class Version2PCB { //Version 2 needs first child and siblings
      int firstChild;
      int youngSibling;
      int oldSibling;
+     Version2PCB next;
 
      Version2PCB(int parent){
          this.parent = parent;
          this.firstChild = -1; //intiti to -1
          this.youngSibling = -1;
          this.oldSibling =-1;
+         this.next = null;
      }
 }

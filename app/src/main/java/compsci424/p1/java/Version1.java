@@ -19,16 +19,14 @@ import java.util.List;
 public class Version1 {
     // Declare any class/instance variables that you need here.
     List<Version1PCB> PCBList;
+    Version1PCB head;
     /**
      * Default constructor. Use this to allocate (if needed) and
      * initialize the PCB array, create the PCB for process 0, and do
      * any other initialization that is needed. 
      */
     public Version1(int k) {
-        this.PCBList = new ArrayList<>();
-        for(int i = 0; i < k; i++){
-            PCBList.add(new Version1PCB(-1)); //empty
-        }
+        this.head = new Version1PCB(-1);
     }
 
     /**
@@ -37,15 +35,15 @@ public class Version1 {
      * @return 0 if successful, not 0 if unsuccessful
      */
     int create(int parentPid) {
-        if(parentPid < 0 || parentPid >= PCBList.size()){
-            return -1;
-        }
+       Version1PCB parent = findParent(parentPid);
+       if(parent == null){
+           return -1;
+       }
         Version1PCB child = new Version1PCB(parentPid);
 
-        Version1PCB parent = PCBList.get(parentPid);
-
         parent.children.add(parentPid);
-        PCBList.add(child);
+        appendTail(parent,child);
+
         // If parentPid is not in the process hierarchy, do nothing; 
         // your code may return an error code or message in this case,
         // but it should not halt
@@ -69,15 +67,16 @@ public class Version1 {
      * @return 0 if successful, not 0 if unsuccessful
      */
     public int destroy (int targetPid) {
-if(targetPid < 0 || targetPid >= PCBList.size()){
-    return -1;//
+Version1PCB target = findTarget(targetPid, head);
+if(target == null){
+    return -1;
 }
 
-Version1PCB target = PCBList.get(targetPid);
-for(int childPid: target.children){
+for(int childPid:target.children){
     destroy(childPid);
+    //remove the PCB we want
 }
-PCBList.remove(targetPid); //remove the PCB we want
+removeFromList(head,target);
          // If targetPid is not in the process hierarchy, do nothing; 
          // your code may return an error code or message in this case,
          // but it should not halt
@@ -96,6 +95,40 @@ PCBList.remove(targetPid); //remove the PCB we want
          // If you change the return type/value(s), update the Javadoc.
         return 0; // often means "success" or "terminated normally"
     }
+    Version1PCB findTarget(int targetPid, Version1PCB curr){
+        while (curr != null && curr.parent!= targetPid){
+            curr= curr.next;
+        }
+        return curr;
+    }
+    Version1PCB findParent(int parentPid){
+        Version1PCB curr = head;
+        while(curr != null && curr.parent != parentPid){
+            curr = curr.next;
+        }
+        return curr;
+    }
+    void appendTail(Version1PCB parent, Version1PCB child){
+        if(parent.next == null){
+            parent.next = child;
+        }else{
+            Version1PCB temp = parent.next;
+            while(temp.next != null){
+                temp=temp.next;
+            }
+            temp.next = child;
+        }
+    }
+
+    void removeFromList(Version1PCB head, Version1PCB target){
+        Version1PCB curr = head;
+        while(curr != null && curr.next != target){
+            curr = curr.next;
+        }
+        if(curr != null){
+            curr.next = target.next;
+        }
+    }
 
     /**
      * Traverse the process creation hierarchy graph, printing
@@ -108,22 +141,20 @@ PCBList.remove(targetPid); //remove the PCB we want
      * the main program for printing. It's your choice. 
      */
     public void showProcessInfo() {
-for(int i = 0; i < PCBList.size();i++){
-    Version1PCB PCB = PCBList.get(i);
-    System.out.println("Process " + i + "; parent is " + PCB.parent);
-    if(!PCB.children.isEmpty()){
-        System.out.print(" and children are ");
-        for(int childPid : PCB.children){
-            System.out.println(childPid+" ");
+Version1PCB curr = head.next;
+while(curr != null){
+    System.out.println("Process " + curr.parent + ": parent is " + curr.parent);
+    if(!curr.children.isEmpty()){
+        System.out.println(" and children are ");
+        for(int childPid:curr.children){
+            System.out.println(childPid + " ");
         }
     }
     else{
-        System.out.print(" and has no children");
-
+        System.out.println(" and has no children");
     }
     System.out.println();
-    System.out.println();
-
+    curr= curr.next;
 }
     }
 

@@ -10,6 +10,7 @@
 package compsci424.p1.java;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -28,62 +29,58 @@ public class Program1 {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         List<String> arr = new ArrayList<>();
+        int k = sc.nextInt();
+        Version1 v1 = new Version1(k);
+        Version2 v2 = new Version2(k);
         while(true){
             String word = sc.nextLine();
             if(word.equals("end")) break;
             arr.add(word);
         }
-        Version1 v1 = new Version1(16);
-        for(String ar : arr){
-            String[] split = ar.split(" ");
-            if(split[0].equals("create")){
-                int result = v1.create(Integer.parseInt(split[1]));
-                        if(result == 0){
-                            System.out.println("Create successful");
-                        }
-                        else{
-                            System.out.println("Create unsuccessful");
-                        }
-            }
 
-            else if(split[0].equals("destroy")){
-                int result = v1.destroy(Integer.parseInt(split[1]));
-                if(result == 0){
-                    System.out.println("Destroy successful");
-                }
-                else{
-                    System.out.println("Destroy unsuccessful");
+
+        long start = System.currentTimeMillis();
+        for(int i = 0; i < 200; i ++) {
+            for (String action : arr) {
+                String[] split = action.split(" ");
+                if (split[0].equals("create")) {
+                    int pid = Integer.parseInt(split[1]);
+                    v1.create(pid);
+                    v1.showProcessInfo();
+                } else if (split[0].equals("destroy")) {
+                    int pid = Integer.parseInt(split[1]);
+                    v1.destroy(pid);
+
                 }
             }
-            v1.showProcessInfo();
-
         }
+        v1.showProcessInfo();
 
-        Version2 v2 = new Version2(16);
-        for(String ar : arr){
-            String[] split = ar.split(" ");
-            if(split[0].equals("create")){
-                int result = v2.create(Integer.parseInt(split[1]));
-                if(result == 0){
-                    System.out.println("Create successful");
-                }
-                else{
-                    System.out.println("Create unsuccessful");
-                }
-            }
+        long end = System.currentTimeMillis();
+        long Version1Running = end - start;
+        System.out.println("Version 1 Running Time: " + Version1Running);
 
-            else if(split[0].equals("destroy")){
-                int result = v2.destroy(Integer.parseInt(split[1]));
-                if(result == 0){
-                    System.out.println("Destroy successful");
-                }
-                else{
-                    System.out.println("Destroy unsuccessful");
-                }
-            }
-            v2.showProcessInfo();
+         start = System.currentTimeMillis();
+         for(int i = 0; i < 200; i ++) {
+             for (String action : arr) {
+                 String[] split = action.split(" ");
+                 if (split[0].equals("create")) {
+                     int pid = Integer.parseInt(split[1]);
+                     v2.create(pid);
+                     v2.showProcessInfo();
+                 } else if (split[0].equals("destroy")) {
+                     int pid = Integer.parseInt(split[1]);
+                     v2.destroy(pid);
 
-        }
+                 }
+             }
+         }
+        v2.showProcessInfo();
+         end = System.currentTimeMillis();
+        long Version2Running = end - start;
+        System.out.println("Version 1 Running Time: " + Version2Running);
+
+
         // 1. Ask the user to enter commands of the form "create N",
         //    "destroy N", or "end", where N is an integer between 0 
         //    and 15.

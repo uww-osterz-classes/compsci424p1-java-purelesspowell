@@ -4,6 +4,7 @@
 package compsci424.p1.java;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -12,10 +13,12 @@ import java.util.List;
  */
 public class Version1PCB { // The PCB is just for initializing parent and child
     int parent;
-    List<Integer> children;
+    LinkedList<Integer> children;
+    Version1PCB next;
 
     Version1PCB(int parent){
         this.parent = parent;
-        this.children = new ArrayList<>();
+        this.children = new LinkedList<>();
+        this.next = null;
     }
 }

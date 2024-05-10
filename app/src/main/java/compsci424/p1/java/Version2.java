@@ -3,6 +3,8 @@
  */
 package compsci424.p1.java;
 
+import jdk.nashorn.internal.runtime.Version;
+
 import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,17 +21,14 @@ import java.util.List;
  */
 public class Version2 {
     // Declare any class/instance variables that you need here.
-List<Version2PCB> PCBList;
+Version2PCB head;
     /**
      * Default constructor. Use this to allocate (if needed) and
      * initialize the PCB array, create the PCB for process 0, and do
      * any other initialization that is needed. 
      */
     public Version2(int k) {
-this.PCBList = new ArrayList<>();
-for(int i = 0; i < k; i++){
-    PCBList.add(new Version2PCB(-1));
-}
+this.head = new Version2PCB(-1);
     }
     
     /**
@@ -38,24 +37,14 @@ for(int i = 0; i < k; i++){
      * @return 0 if successful, not 0 if unsuccessful
      */
     int create(int parentPid) {
-
-        if(parentPid < 0 || parentPid>=PCBList.size()){
+Version2PCB parent = findParent(parentPid);
+        if(parent == null){
             return -1;
         }
-        Version2PCB parent = PCBList.get(parentPid);
+
         Version2PCB child = new Version2PCB(parentPid);
-        PCBList.add(child);
-        if(parent.firstChild == -1){
-            parent.firstChild = PCBList.indexOf((child)); // There are no other children so you are first
-        }
-        else{
-            int siblingPid = parent.firstChild;
-            while(PCBList.get(siblingPid).youngSibling != -1){
-                siblingPid = PCBList.get(siblingPid).youngSibling;
-            }
-            PCBList.get(siblingPid).youngSibling = PCBList.indexOf(child);
-            child.oldSibling = siblingPid;
-        }
+        appendTail(parent,child);
+
         // If parentPid is not in the process hierarchy, do nothing; 
         // your code may return an error code or message in this case,
         // but it should not halt
@@ -79,28 +68,13 @@ for(int i = 0; i < k; i++){
      * @return 0 if successful, not 0 if unsuccessful
      */
     int destroy (int targetPid) {
-if(targetPid < 0 || targetPid >= PCBList.size()){
+Version2PCB target = findTarget(targetPid, head);
+if(target == null){
     return -1;
 }
+fix(target);
+removeFromList(head,target);
 
-Version2PCB target = PCBList.get(targetPid);
-if(target.parent != -1){
-    Version2PCB parent = PCBList.get(target.parent);
-
-    if(target.youngSibling != -1){
-        PCBList.get(target.youngSibling).oldSibling = target.oldSibling;
-    }
-
-    if(target.oldSibling != -1){
-        PCBList.get(target.oldSibling).youngSibling = target.youngSibling;
-    }
-}
-for(int childPid = target.firstChild; childPid != -1;){
-    int next = PCBList.get(childPid).youngSibling;
-    destroy(childPid);
-    childPid = next;
-}
-PCBList.remove(targetPid);
 
         // If targetPid is not in the process hierarchy, do nothing; 
         // your code may return an error code or message in this case,
@@ -121,6 +95,69 @@ PCBList.remove(targetPid);
         // If you change the return type/value(s), update the Javadoc.
        return 0; // often means "success" or "terminated normally"
    }
+   private Version2PCB firstChildNode(Version2PCB n){
+        if(n == null){
+            return null;
+        }
+        if(n.firstChild != -1){
+            return findTarget(n.firstChild,head);
+        }
+        return null;
+   }
+   Version2PCB findParent(int parentPid){
+        Version2PCB curr = head;
+
+        while(curr != null && curr.parent != parentPid){
+            curr = curr.next;
+        }
+        return curr;
+   }
+   Version2PCB findTarget(int targetPid, Version2PCB curr){
+        while (curr != null && curr.parent!= targetPid){
+            Version2PCB child = findTarget(targetPid,firstChildNode(curr));
+            if(child != null){
+                return child;
+            }
+            curr= curr.next;
+        }
+        return curr;
+   }
+   void fix(Version2PCB target){
+        if(target.parent != -1){
+            Version2PCB parent = findParent(target.parent);
+            if(parent.firstChild == target.firstChild){
+                parent.firstChild = target.youngSibling;
+            }
+            if(target.youngSibling != -1){
+                Version2PCB youngSibling = findTarget(target.youngSibling, firstChildNode(parent));
+                if(youngSibling != null){
+                    youngSibling.oldSibling = target.oldSibling;
+                }
+            }
+        }
+   }
+   void appendTail(Version2PCB parent, Version2PCB child){
+        if(parent.firstChild == -1){
+            parent.firstChild = child.parent;
+        }
+        else{
+            Version2PCB temp = findTarget(parent.firstChild, head);
+            while(temp.youngSibling != -1){
+                temp = findTarget(temp.youngSibling, head);
+            }
+            temp.youngSibling = child.parent;
+            child.oldSibling = temp.parent;
+        }
+   }
+   void removeFromList(Version2PCB head, Version2PCB target){
+        Version2PCB curr = head;
+        while(curr != null && curr.next != target){
+            curr = curr.next;
+        }
+        if(curr != null){
+            curr.next = target.next;
+        }
+   }
 
    /**
     * Traverse the process creation hierarchy graph, printing
@@ -133,21 +170,23 @@ PCBList.remove(targetPid);
     * the main program for printing. It's your choice. 
     */
    void showProcessInfo() {
-for(int k = 0; k < PCBList.size();k++){
-    Version2PCB PCB = PCBList.get(k);
-    System.out.print(" Process " + k + ": parent is " + PCB.parent);
-    if(PCB.firstChild != -1){
-        System.out.print(" and children are ");
-        int childPid = PCB.firstChild;
-        while(childPid != -1){
-            System.out.print(childPid + " ");
-            childPid = PCBList.get(childPid).youngSibling;
+Version2PCB curr = firstChildNode(head);
+while(curr != null){
+    System.out.print("Process " + curr.parent + ": parent is " + curr.parent);
+    if(curr.firstChild!=-1){
+        System.out.print(" and childen are ");
+        Version2PCB child = findTarget(curr.firstChild,head);
+        while(child != null){
+
+            System.out.print(child.parent + " ");
+            child = findTarget(child.youngSibling, head);
         }
     }
     else{
-        System.out.print(" and has no children");
+        System.out.println(" and has no children");
     }
     System.out.println();
+    curr= curr.next;
 }
    }
 
