@@ -3,10 +3,19 @@
  */
 package compsci424.p1.java;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * The process control block structure that is used to track a
  * process's parent and children (if any) in Version 1.
  */
-public class Version1PCB {
-    
+public class Version1PCB { // The PCB is just for initializing parent and child
+    int parent;
+    List<Integer> children;
+
+    Version1PCB(int parent){
+        this.parent = parent;
+        this.children = new ArrayList<>();
+    }
 }

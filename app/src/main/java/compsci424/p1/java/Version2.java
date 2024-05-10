@@ -3,7 +3,11 @@
  */
 package compsci424.p1.java;
 
-/** 
+import java.sql.SQLOutput;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
  * Implements the process creation hierarchy for Version 2, which does
  * not use linked lists.
  * 
@@ -15,14 +19,17 @@ package compsci424.p1.java;
  */
 public class Version2 {
     // Declare any class/instance variables that you need here.
-
+List<Version2PCB> PCBList;
     /**
      * Default constructor. Use this to allocate (if needed) and
      * initialize the PCB array, create the PCB for process 0, and do
      * any other initialization that is needed. 
      */
-    public Version2() {
-
+    public Version2(int k) {
+this.PCBList = new ArrayList<>();
+for(int i = 0; i < k; i++){
+    PCBList.add(new Version2PCB(-1));
+}
     }
     
     /**
@@ -31,6 +38,24 @@ public class Version2 {
      * @return 0 if successful, not 0 if unsuccessful
      */
     int create(int parentPid) {
+
+        if(parentPid < 0 || parentPid>=PCBList.size()){
+            return -1;
+        }
+        Version2PCB parent = PCBList.get(parentPid);
+        Version2PCB child = new Version2PCB(parentPid);
+        PCBList.add(child);
+        if(parent.firstChild == -1){
+            parent.firstChild = PCBList.indexOf((child)); // There are no other children so you are first
+        }
+        else{
+            int siblingPid = parent.firstChild;
+            while(PCBList.get(siblingPid).youngSibling != -1){
+                siblingPid = PCBList.get(siblingPid).youngSibling;
+            }
+            PCBList.get(siblingPid).youngSibling = PCBList.indexOf(child);
+            child.oldSibling = siblingPid;
+        }
         // If parentPid is not in the process hierarchy, do nothing; 
         // your code may return an error code or message in this case,
         // but it should not halt
@@ -54,6 +79,29 @@ public class Version2 {
      * @return 0 if successful, not 0 if unsuccessful
      */
     int destroy (int targetPid) {
+if(targetPid < 0 || targetPid >= PCBList.size()){
+    return -1;
+}
+
+Version2PCB target = PCBList.get(targetPid);
+if(target.parent != -1){
+    Version2PCB parent = PCBList.get(target.parent);
+
+    if(target.youngSibling != -1){
+        PCBList.get(target.youngSibling).oldSibling = target.oldSibling;
+    }
+
+    if(target.oldSibling != -1){
+        PCBList.get(target.oldSibling).youngSibling = target.youngSibling;
+    }
+}
+for(int childPid = target.firstChild; childPid != -1;){
+    int next = PCBList.get(childPid).youngSibling;
+    destroy(childPid);
+    childPid = next;
+}
+PCBList.remove(targetPid);
+
         // If targetPid is not in the process hierarchy, do nothing; 
         // your code may return an error code or message in this case,
         // but it should not halt
@@ -85,7 +133,22 @@ public class Version2 {
     * the main program for printing. It's your choice. 
     */
    void showProcessInfo() {
-
+for(int k = 0; k < PCBList.size();k++){
+    Version2PCB PCB = PCBList.get(k);
+    System.out.print(" Process " + k + ": parent is " + PCB.parent);
+    if(PCB.firstChild != -1){
+        System.out.print(" and children are ");
+        int childPid = PCB.firstChild;
+        while(childPid != -1){
+            System.out.print(childPid + " ");
+            childPid = PCBList.get(childPid).youngSibling;
+        }
+    }
+    else{
+        System.out.print(" and has no children");
+    }
+    System.out.println();
+}
    }
 
    /* If you need or want more methods, feel free to add them. */

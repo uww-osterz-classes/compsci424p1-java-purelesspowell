@@ -3,7 +3,10 @@
  */
 package compsci424.p1.java;
 
-/** 
+import java.util.ArrayList;
+import java.util.List;
+
+/**
  * Implements the process creation hierarchy for Version 1, which uses
  * linked lists.
  * 
@@ -15,14 +18,17 @@ package compsci424.p1.java;
  */
 public class Version1 {
     // Declare any class/instance variables that you need here.
-
+    List<Version1PCB> PCBList;
     /**
      * Default constructor. Use this to allocate (if needed) and
      * initialize the PCB array, create the PCB for process 0, and do
      * any other initialization that is needed. 
      */
-    public Version1() {
-
+    public Version1(int k) {
+        this.PCBList = new ArrayList<>();
+        for(int i = 0; i < k; i++){
+            PCBList.add(new Version1PCB(-1)); //empty
+        }
     }
 
     /**
@@ -31,6 +37,15 @@ public class Version1 {
      * @return 0 if successful, not 0 if unsuccessful
      */
     int create(int parentPid) {
+        if(parentPid < 0 || parentPid >= PCBList.size()){
+            return -1;
+        }
+        Version1PCB child = new Version1PCB(parentPid);
+
+        Version1PCB parent = PCBList.get(parentPid);
+
+        parent.children.add(parentPid);
+        PCBList.add(child);
         // If parentPid is not in the process hierarchy, do nothing; 
         // your code may return an error code or message in this case,
         // but it should not halt
@@ -53,7 +68,16 @@ public class Version1 {
      * @param targetPid the PID of the process to be destroyed
      * @return 0 if successful, not 0 if unsuccessful
      */
-    int destroy (int targetPid) {
+    public int destroy (int targetPid) {
+if(targetPid < 0 || targetPid >= PCBList.size()){
+    return -1;//
+}
+
+Version1PCB target = PCBList.get(targetPid);
+for(int childPid: target.children){
+    destroy(childPid);
+}
+PCBList.remove(targetPid); //remove the PCB we want
          // If targetPid is not in the process hierarchy, do nothing; 
          // your code may return an error code or message in this case,
          // but it should not halt
@@ -83,8 +107,24 @@ public class Version1 {
      * change the return type of this function to return the text to
      * the main program for printing. It's your choice. 
      */
-    void showProcessInfo() {
+    public void showProcessInfo() {
+for(int i = 0; i < PCBList.size();i++){
+    Version1PCB PCB = PCBList.get(i);
+    System.out.println("Process " + i + "; parent is " + PCB.parent);
+    if(!PCB.children.isEmpty()){
+        System.out.print(" and children are ");
+        for(int childPid : PCB.children){
+            System.out.println(childPid+" ");
+        }
+    }
+    else{
+        System.out.print(" and has no children");
 
+    }
+    System.out.println();
+    System.out.println();
+
+}
     }
 
     /* If you need or want more methods, feel free to add them. */

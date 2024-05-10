@@ -9,6 +9,10 @@
  */
 package compsci424.p1.java;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
 /**
  * Main class for this program. The required steps have been copied
  * into the main method as comments. Feel free to add more comments to
@@ -22,7 +26,64 @@ public class Program1 {
      * @param args command-line arguments, which can be ignored
      */
     public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        List<String> arr = new ArrayList<>();
+        while(true){
+            String word = sc.nextLine();
+            if(word.equals("end")) break;
+            arr.add(word);
+        }
+        Version1 v1 = new Version1(16);
+        for(String ar : arr){
+            String[] split = ar.split(" ");
+            if(split[0].equals("create")){
+                int result = v1.create(Integer.parseInt(split[1]));
+                        if(result == 0){
+                            System.out.println("Create successful");
+                        }
+                        else{
+                            System.out.println("Create unsuccessful");
+                        }
+            }
 
+            else if(split[0].equals("destroy")){
+                int result = v1.destroy(Integer.parseInt(split[1]));
+                if(result == 0){
+                    System.out.println("Destroy successful");
+                }
+                else{
+                    System.out.println("Destroy unsuccessful");
+                }
+            }
+            v1.showProcessInfo();
+
+        }
+
+        Version2 v2 = new Version2(16);
+        for(String ar : arr){
+            String[] split = ar.split(" ");
+            if(split[0].equals("create")){
+                int result = v2.create(Integer.parseInt(split[1]));
+                if(result == 0){
+                    System.out.println("Create successful");
+                }
+                else{
+                    System.out.println("Create unsuccessful");
+                }
+            }
+
+            else if(split[0].equals("destroy")){
+                int result = v2.destroy(Integer.parseInt(split[1]));
+                if(result == 0){
+                    System.out.println("Destroy successful");
+                }
+                else{
+                    System.out.println("Destroy unsuccessful");
+                }
+            }
+            v2.showProcessInfo();
+
+        }
         // 1. Ask the user to enter commands of the form "create N",
         //    "destroy N", or "end", where N is an integer between 0 
         //    and 15.
