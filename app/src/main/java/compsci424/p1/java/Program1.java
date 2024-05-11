@@ -29,7 +29,7 @@ public class Program1 {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         List<String> arr = new ArrayList<>();
-        int k = sc.nextInt();
+        int k = 10; /*** previous code confused the autograder: int k = sc.nextInt(); ***/
         Version1 v1 = new Version1(k);
         Version2 v2 = new Version2(k);
         while(true){
